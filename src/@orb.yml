@@ -1,0 +1,7 @@
+version: 2.1
+
+description: >
+  Jobs to easily build x86_64 and arm64 docker images, on native hardware, and then combine them into a single multi-arch docker image.
+
+display:
+  source_url: "https://github.com/nyvanga/multiarch-orb"

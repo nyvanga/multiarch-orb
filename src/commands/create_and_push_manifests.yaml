@@ -1,0 +1,28 @@
+description: >
+  Creates manifest that combines the two architecture builds.
+parameters:
+  image:
+    type: string
+    description: "Base container image name."
+  tag_prefix:
+    type: string
+    default: ""
+    description: "Tag prefix. (default '')"
+  tags:
+    type: string
+    default: "latest"
+    description: "Whitespace delimited list of tags (default 'latest')."
+steps:
+  - run:
+      name: "Create and push << parameters.image >> manifest (<< parameters.tags >>)"
+      command: <<include(scripts/create_and_push_manifest.sh)>>
+      environment:
+        IMAGE: "<< parameters.image >>"
+        TAG_PREFIX: "<< parameters.tag_prefix >>"
+        TAGS: "<< parameters.tags >>"
+  - remove_docker_hub_tag:
+      image: "<< parameters.image >>"
+      tag: "<< parameters.tag_prefix >>x86_64"
+  - remove_docker_hub_tag:
+      image: "<< parameters.image >>"
+      tag: "<< parameters.tag_prefix >>arm64"

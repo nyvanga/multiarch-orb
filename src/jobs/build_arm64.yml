@@ -1,0 +1,36 @@
+description: >
+  Builds the arm64 version of the image
+
+executor: arm64
+
+parameters:
+  image:
+    type: string
+    description: "Base container image name."
+  tag_prefix:
+    type: string
+    default: ""
+    description: "Tag prefix. (default '')"
+  build_context:
+    type: string
+    default: "."
+    description: "Build context."
+  build_args:
+    type: string
+    default: ""
+    description: "Extra arguments for docker build. (default '')"
+  build_args_env_name:
+    type: string
+    default: ""
+    description: "Name of ENV variable containing extra arguments for docker build. (default '')"
+
+steps:
+  - docker_hub_login
+  - checkout
+  - build_and_push:
+      image: "<< parameters.image >>"
+      architecture: "arm64"
+      tag_prefix: "<< parameters.tag_prefix >>"
+      build_context: "<< parameters.build_context >>"
+      build_args: "<< parameters.build_args >>"
+      build_args_env_name: "<< parameters.build_args_env_name >>"

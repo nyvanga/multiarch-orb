@@ -1,0 +1,98 @@
+version: 2.1
+orbs:
+  multiarch: nanders/multiarch@dev:<<pipeline.git.revision>>
+  orb-tools: circleci/orb-tools@11.1
+
+filters: &filters
+  tags:
+    only: /.*/
+
+jobs:
+  cleanup_docker_hub:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Removing left-over tags
+          command: |
+            IMAGE=test-multiarch-orb TAG_NAME=$(date +'%Y-%m-%d') src/scripts/remove_docker_hub_tag.sh
+            IMAGE=test-multiarch-orb TAG_NAME=latest src/scripts/remove_docker_hub_tag.sh
+
+workflows:
+  test-deploy:
+    jobs:
+      # Make sure to include "filters: *filters" in every test job you want to run as part of your deployment.
+      - orb-tools/pack:
+          filters: *filters
+      - multiarch/build_x86_64:
+          name: test_x86_64
+          filters: *filters
+          image: "test-multiarch-orb"
+          tag_prefix: "test_"
+          build_context: tests/
+          build_args: "--build-arg WHAT_IN_THE_WORLD=arm64_from_x86_64"
+          post-steps:
+            - run:
+                name: Test x86_64 image
+                command: |
+                  docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_x86_64
+      - multiarch/build_arm64:
+          name: test_arm64
+          filters: *filters
+          image: "test-multiarch-orb"
+          tag_prefix: "test_"
+          build_context: tests/
+          build_args: "--build-arg WHAT_IN_THE_WORLD=x86_64_from_arm64"
+          post-steps:
+            - run:
+                name: Test arm64 image
+                command: |
+                  docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_arm64
+      - multiarch/create_and_push_manifests:
+          filters: *filters
+          image: "test-multiarch-orb"
+          tag_prefix: "test_"
+          tags: "date latest"
+          requires:
+            - test_x86_64
+            - test_arm64
+      - multiarch/build_x86_64:
+          name: test_dynamic_build_args
+          filters: *filters
+          image: "test-multiarch-orb"
+          tag_prefix: "test_dynamic_"
+          build_context: tests/
+          build_args_env_name: "DYNAMIC_ARGS"
+          pre-steps:
+            - run:
+                name: Setup build-args
+                command: |
+                  echo "export DYNAMIC_ARGS='--build-arg WHAT_IN_THE_WORLD=Dynamic_baby!'" >> ${BASH_ENV}
+          post-steps:
+            - run:
+                name: Test dynamic build-args image
+                command: |
+                  docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_dynamic_x86_64
+            - multiarch/remove_docker_hub_tag:
+                image: "test-multiarch-orb"
+                tag: "test_dynamic_x86_64"
+      - cleanup_docker_hub:
+          filters: *filters
+          requires:
+            - multiarch/create_and_push_manifests
+      - orb-tools/publish:
+          orb-name: nanders/multiarch
+          vcs-type: << pipeline.project.type >>
+          pub-type: production
+          requires:
+            - orb-tools/pack
+            - cleanup_docker_hub
+            - test_dynamic_build_args
+          context: orb-publishing
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/

@@ -1,0 +1,25 @@
+description: >
+  Creates manifest that combines the two architecture builds.
+  Then removes the temporary architecture image tags.
+
+executor: default
+
+parameters:
+  image:
+    type: string
+    description: "Base container image name."
+  tag_prefix:
+    type: string
+    default: ""
+    description: "Tag prefix. (default '')"
+  tags:
+    type: string
+    default: "latest"
+    description: "Whitespace delimited list of tags (default 'latest')."
+
+steps:
+  - docker_hub_login
+  - create_and_push_manifests:
+      image: "<< parameters.image >>"
+      tag_prefix: "<< parameters.tag_prefix >>"
+      tags: "<< parameters.tags >>"
