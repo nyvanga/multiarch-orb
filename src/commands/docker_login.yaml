@@ -1,0 +1,7 @@
+description: >
+  Docker hub login
+steps:
+  - run:
+      name: Docker login
+      command: |
+        echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin

@@ -1,0 +1,17 @@
+description: >
+  Removes tag from docker hub
+parameters:
+  image:
+    type: string
+    description: "Base container image name"
+  tag:
+    type: enum
+    enum: ["x86_64", "arm64"]
+    description: "Tag to be removed (either 'x86_64' or 'arm64')."
+steps:
+  - run:
+      name: "Remove << parameters.image >> << parameters.tag >> tag"
+      command: <<include(scripts/remove_docker_hub_tag.sh)>>
+      environment:
+        IMAGE: "<< parameters.image >>"
+        TAG_NAME: "<< parameters.tag >>"

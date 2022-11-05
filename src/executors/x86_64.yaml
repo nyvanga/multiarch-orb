@@ -1,0 +1,5 @@
+description: >
+  x86_64 machine
+machine:
+  image: ubuntu-2204:current
+resource_class: medium

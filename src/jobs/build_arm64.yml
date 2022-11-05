@@ -1,0 +1,21 @@
+description: >
+  Builds the arm64 version of the image
+
+executor: arm64
+
+parameters:
+  image:
+    type: string
+    description: "Base container image name"
+  build_context:
+    type: string
+    default: "."
+    description: "Build context."
+
+steps:
+  - checkout
+  - docker_login
+  - build_and_push:
+      image: "<< parameters.image >>"
+      architecture: "arm64"
+      build_context: "<< parameters.build_context >>"

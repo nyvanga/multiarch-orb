@@ -1,0 +1,17 @@
+description: >
+  Creates manifest that combines the two architecture builds.
+parameters:
+  image:
+    type: string
+    description: "Base container image name"
+  tags:
+    type: string
+    default: "latest"
+    description: "Whitespace delimited list of tags (default 'latest')."
+steps:
+  - run:
+      name: "Create and push << parameters.image >> manifest (<< parameters.tags >>)"
+      command: <<include(scripts/create_and_push_manifest.sh)>>
+      environment:
+        IMAGE: "<< parameters.image >>"
+        TAGS: "<< parameters.tags >>"
