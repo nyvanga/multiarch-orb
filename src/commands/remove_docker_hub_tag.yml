@@ -1,0 +1,16 @@
+description: >
+  Removes tag from docker hub
+parameters:
+  image:
+    type: string
+    description: "Base container image name."
+  tag:
+    type: string
+    description: "Tag to be removed."
+steps:
+  - run:
+      name: "Remove << parameters.image >> << parameters.tag >> tag"
+      command: <<include(scripts/remove_docker_hub_tag.sh)>>
+      environment:
+        IMAGE: "<< parameters.image >>"
+        TAG_NAME: "<< parameters.tag >>"

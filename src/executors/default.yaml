@@ -1,0 +1,5 @@
+description: >
+  default machine
+machine:
+  image: ubuntu-2204:current
+resource_class: medium
