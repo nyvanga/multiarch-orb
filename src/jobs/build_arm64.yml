@@ -28,9 +28,9 @@ steps:
   - docker_hub_login
   - checkout
   - build_and_push:
-      image: "<< parameters.image >>"
+      image: << parameters.image >>
       architecture: "arm64"
-      tag_prefix: "<< parameters.tag_prefix >>"
-      build_context: "<< parameters.build_context >>"
-      build_args: "<< parameters.build_args >>"
-      build_args_env_name: "<< parameters.build_args_env_name >>"
+      tag_prefix: << parameters.tag_prefix >>
+      build_context: << parameters.build_context >>
+      build_args: << parameters.build_args >>
+      build_args_env_name: << parameters.build_args_env_name >>

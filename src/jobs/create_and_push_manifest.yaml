@@ -11,14 +11,14 @@ parameters:
     type: string
     default: ""
     description: "Tag prefix. (default '')"
-  tags:
+  tag:
     type: string
     default: "latest"
-    description: "Whitespace delimited list of tags (default 'latest')."
+    description: "Tag of the manifest (default 'latest')."
 
 steps:
   - docker_hub_login
-  - create_and_push_manifests:
-      image: "<< parameters.image >>"
-      tag_prefix: "<< parameters.tag_prefix >>"
-      tags: "<< parameters.tags >>"
+  - create_and_push_manifest:
+      image: << parameters.image >>
+      tag_prefix: << parameters.tag_prefix >>
+      tag: << parameters.tag >>

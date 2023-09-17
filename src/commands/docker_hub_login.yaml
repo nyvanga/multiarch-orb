@@ -3,5 +3,4 @@ description: >
 steps:
   - run:
       name: Docker hub login
-      command: |
-        echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
+      command: <<include(scripts/docker_hub_login.sh)>>

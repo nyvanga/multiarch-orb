@@ -14,11 +14,13 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-      - run:
-          name: Removing left-over tags
-          command: |
-            IMAGE=test-multiarch-orb TAG_NAME=$(date +'%Y-%m-%d') src/scripts/remove_docker_hub_tag.sh
-            IMAGE=test-multiarch-orb TAG_NAME=latest src/scripts/remove_docker_hub_tag.sh
+      - multiarch/docker_hub_token
+      - multiarch/remove_docker_hub_tag:
+          image: test-multiarch-orb
+          tag: date
+      - multiarch/remove_docker_hub_tag:
+          image: test-multiarch-orb
+          tag: latest
 
 workflows:
   test-deploy:
@@ -50,12 +52,17 @@ workflows:
                 name: Test arm64 image
                 command: |
                   docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_arm64
-      - multiarch/create_and_push_manifests:
-          name: test_manifests
+      - multiarch/create_and_push_manifest:
+          name: test_manifest_<< matrix.tag >>
           filters: *filters
           image: "test-multiarch-orb"
           tag_prefix: "test_"
-          tags: "date latest"
+          matrix:
+            parameters:
+              tag:
+                - date
+                - latest
+            alias: test_manifests
           requires:
             - test_x86_64
             - test_arm64
@@ -83,6 +90,7 @@ workflows:
                 name: Test dynamic build-args image
                 command: |
                   docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_dynamic_x86_64
+            - multiarch/docker_hub_token
             - multiarch/remove_docker_hub_tag:
                 image: "test-multiarch-orb"
                 tag: "test_dynamic_x86_64"

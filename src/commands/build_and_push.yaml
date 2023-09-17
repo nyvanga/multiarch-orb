@@ -27,11 +27,11 @@ parameters:
 steps:
   - run:
       name: "Build '<< parameters.build_context >>' and push '<< parameters.image >>:<< parameters.tag_prefix >><< parameters.architecture >>'"
-      command: <<include(scripts/build_and_push.sh)>>
+      command: << include(scripts/build_and_push.sh) >>
       environment:
-        IMAGE: "<< parameters.image >>"
-        TAG_PREFIX: "<< parameters.tag_prefix >>"
-        ARCHITECTURE: "<< parameters.architecture >>"
-        BUILD_CONTEXT: "<< parameters.build_context >>"
-        BUILD_ARGS: "<< parameters.build_args >>"
-        BUILD_ARGS_ENV_NAME: "<< parameters.build_args_env_name >>"
+        IMAGE: << parameters.image >>
+        TAG_PREFIX: << parameters.tag_prefix >>
+        ARCHITECTURE: << parameters.architecture >>
+        BUILD_CONTEXT: << parameters.build_context >>
+        BUILD_ARGS: << parameters.build_args >>
+        BUILD_ARGS_ENV_NAME: << parameters.build_args_env_name >>

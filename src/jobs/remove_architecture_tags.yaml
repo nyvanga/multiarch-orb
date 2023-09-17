@@ -13,10 +13,10 @@ parameters:
     description: "Tag prefix. (default '')"
 
 steps:
-  - docker_hub_login
+  - docker_hub_token
   - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>x86_64"
+      image: << parameters.image >>
+      tag: << parameters.tag_prefix >>x86_64
   - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>arm64"
+      image: << parameters.image >>
+      tag: << parameters.tag_prefix >>arm64

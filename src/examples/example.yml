@@ -12,11 +12,11 @@ usage:
     use-multiarch-orb:
       jobs:
         - multiarch/build_x86_64:
-            image: "<< pipeline.parameters.image >>"
+            image: << pipeline.parameters.image >>
         - multiarch/build_arm64:
-            image: "<< pipeline.parameters.image >>"
+            image: << pipeline.parameters.image >>
         - multiarch/create_and_push_manifests:
-            image: "<< pipeline.parameters.image >>"
+            image: << pipeline.parameters.image >>
             tags: "date timestamp latest"
             requires:
               - multiarch/build_x86_64

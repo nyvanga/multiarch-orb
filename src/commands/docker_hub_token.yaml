@@ -1,0 +1,6 @@
+description: >
+  Docker hub token
+steps:
+  - run:
+      name: Docker hub token
+      command: <<include(scripts/docker_hub_token.sh)>>
