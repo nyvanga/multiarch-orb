@@ -1,5 +1,5 @@
 description: >
-  Retrieves Github release and converts to semver ENV variables.
+  Retrieves Github release and converts to CircleCI continuation parameters JSON.
 parameters:
   owner:
     type: string
@@ -7,16 +7,15 @@ parameters:
   repo:
     type: string
     description: "Github repo of the owner."
-  filename:
+  jsonfile:
     type: string
-    default: ''
-    description: "Filename to store ENV statements (Default: '')."
+    description: "JSON Filename to append parameters (uses 'jq --slurp add')."
 steps:
   - run:
       name: "Get Github releases '<< parameters.owner >>/<< parameters.repo >>'"
-      command: << include(scripts/get_github_releases_versions.sh) >>
+      command: << include(scripts/get_github_releases_parameters.sh) >>
       environment:
         OWNER: << parameters.owner >>
         REPO: << parameters.repo >>
-        COMMAND: circleci
-        FILENAME: << parameters.filename >>
+        COMMAND: circleci_parameters
+        JSONFILE: << parameters.jsonfile >>

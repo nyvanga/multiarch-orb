@@ -149,21 +149,18 @@ function get_major_version_from_version() {
 	done
 }
 
-function get_circleci_version_lines() {
+function create_circleci_version_json() {
 	local major_version="${1}"; shift
 	local minor_version="${1}"; shift
 	local suffix="${1:-}"
 	local name_prefix
 	name_prefix="$(echo "${OWNER}" | sed -r 's/[^a-zA-Z_]//')_$(echo "${REPO}" | sed -r 's/[^a-zA-Z_]//')"
-	local major_statement="export ${name_prefix}_major${suffix}='${major_version}'"
-	local minor_statement="export ${name_prefix}_minor${suffix}='${minor_version}'"
-	if [[ "${FILENAME:-}" != "" ]]; then
-		echo "${major_statement}" >> "${FILENAME}"
-		echo "${minor_statement}" >> "${FILENAME}"
-	else
-		echo "${major_statement}"
-		echo "${minor_statement}"
-	fi
+	local json
+	json="$(jq --null-input \
+		--arg name1 "${name_prefix}_major${suffix}" --arg value1 "${major_version}" \
+		--arg name2 "${name_prefix}_minor${suffix}" --arg value2 "${minor_version}" \
+		'{ ($name1): $value1, ($name2): $value2 }')"
+	CIRCLECI_JSON+=("${json}")
 }
 
 function get_circleci_old_version() {
@@ -171,7 +168,7 @@ function get_circleci_old_version() {
 	local suffix="${1}"; shift
 	for index in "${!MAJOR_VERSIONS[@]}"; do
 		if [[ "${major_version}" == "${MAJOR_VERSIONS[index]}" ]]; then
-			get_circleci_version_lines "${MAJOR_VERSIONS[index]}" "${VERSIONS[index]}" "${suffix}"
+			create_circleci_version_json "${MAJOR_VERSIONS[index]}" "${VERSIONS[index]}" "${suffix}"
 			return
 		fi
 	done
@@ -181,12 +178,12 @@ function get_circleci_version() {
 	local major_version=''
 	if [[ ${#STABLE_VERSIONS[@]} -gt 0 ]]; then
 		major_version="$(get_major_version_from_version "${STABLE_VERSIONS[0]}")"
-		get_circleci_version_lines "${major_version}" "${STABLE_VERSIONS[0]}"
+		create_circleci_version_json "${major_version}" "${STABLE_VERSIONS[0]}"
 	fi
 	local major_pre_release=''
 	if [[ ${#PRE_RELEASE_VERSIONS[@]} -gt 0 ]]; then
 		major_pre_release="$(get_major_version_from_version "${PRE_RELEASE_VERSIONS[0]}")"
-		get_circleci_version_lines "${major_pre_release}" "${PRE_RELEASE_VERSIONS[0]}" "_prerelease"
+		create_circleci_version_json "${major_pre_release}" "${PRE_RELEASE_VERSIONS[0]}" "_prerelease"
 	fi
 	local old_major_version
 	local old_index=1
@@ -197,6 +194,10 @@ function get_circleci_version() {
 			old_index=$((old_index + 1))
 		fi
 	done
+	if [[ -f "${JSONFILE}" ]]; then
+		CIRCLECI_JSON+=("$(cat "${JSONFILE}")")
+	fi
+	echo "${CIRCLECI_JSON[@]}" | jq --slurp add > "${JSONFILE}"
 }
 
 case "${COMMAND:-}" in
@@ -228,7 +229,8 @@ case "${COMMAND:-}" in
 		get_major_version "${COMMAND}"
 		;;
 
-	circleci)
+	circleci_parameters)
+		CIRCLECI_JSON=()
 		get_circleci_version
 		;;
 

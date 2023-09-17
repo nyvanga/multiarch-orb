@@ -2,6 +2,7 @@ version: 2.1
 orbs:
   multiarch: nanders/multiarch@dev:<<pipeline.git.revision>>
   orb-tools: circleci/orb-tools@11.1
+  continuation: circleci/continuation@1.0.0
 
 filters: &filters
   tags:
@@ -9,33 +10,27 @@ filters: &filters
 
 jobs:
   test_get_github_releases_versions:
-    machine:
-      image: ubuntu-2204:current
-    resource_class: medium
+    executor: continuation/default
     steps:
-      - multiarch/get_github_releases_versions:
+      - multiarch/get_github_releases_parameters:
           owner: hashicorp
           repo: terraform
-          filename: /tmp/releases.txt
-      - multiarch/get_github_releases_versions:
+          jsonfile: /tmp/parameters.json
+      - multiarch/get_github_releases_parameters:
           owner: ProtonMail
           repo: proton-bridge
-          filename: /tmp/releases.txt
+          jsonfile: /tmp/parameters.json
       - run:
-          name: "Show releases"
+          name: "Show releases parameters"
           command: |
-            cat /tmp/releases.txt
+            cat /tmp/parameters.json | jq '.'
       - run:
-          name: "Load releases"
+          name: "Use releases parameters"
           command: |
-            cat /tmp/releases.txt >> "${BASH_ENV}"
-      - run:
-          name: "Use releases"
-          command: |
-            echo "Latest Terraform release is: '${hashicorp_terraform_minor}'"
-            echo "Pre-release Terraform is: '${hashicorp_terraform_minor_prerelease}'"
-            echo "Latest ProtonMail Bridge release is: '${ProtonMail_protonbridge_minor}'"
-            echo "Pre-release ProtonMail Bridge is: '${ProtonMail_protonbridge_minor_prerelease}'"
+            echo "Latest Terraform release is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor')'"
+            echo "Pre-release Terraform is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor_prerelease')'"
+            echo "Latest ProtonMail Bridge release is: '$(cat /tmp/parameters.json | jq -r '.ProtonMail_protonbridge_minor')'"
+            echo "Pre-release ProtonMail Bridge is: '$(cat /tmp/parameters.json | jq -r '.ProtonMail_protonbridge_minor_prerelease')'"
 
   cleanup_docker_hub:
     machine:
