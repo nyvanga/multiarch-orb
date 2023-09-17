@@ -29,8 +29,8 @@ jobs:
           command: |
             echo "Latest Terraform release is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor')'"
             echo "Pre-release Terraform is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor_prerelease')'"
-            echo "Latest ProtonMail Bridge release is: '$(cat /tmp/parameters.json | jq -r '.ProtonMail_protonbridge_minor')'"
-            echo "Pre-release ProtonMail Bridge is: '$(cat /tmp/parameters.json | jq -r '.ProtonMail_protonbridge_minor_prerelease')'"
+            echo "Latest ProtonMail Bridge release is: '$(cat /tmp/parameters.json | jq -r '.protonmail_protonbridge_minor')'"
+            echo "Pre-release ProtonMail Bridge is: '$(cat /tmp/parameters.json | jq -r '.protonmail_protonbridge_minor_prerelease')'"
 
   cleanup_docker_hub:
     machine:

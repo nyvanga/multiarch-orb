@@ -154,7 +154,7 @@ function create_circleci_version_json() {
 	local minor_version="${1}"; shift
 	local suffix="${1:-}"
 	local name_prefix
-	name_prefix="$(echo "${OWNER}" | sed -r 's/[^a-zA-Z_]//')_$(echo "${REPO}" | sed -r 's/[^a-zA-Z_]//')"
+	name_prefix="$(echo "${OWNER,,}_${REPO,,}" | sed -r 's/[^a-z_]//')"
 	local json
 	json="$(jq --null-input \
 		--arg name1 "${name_prefix}_major${suffix}" --arg value1 "${major_version}" \
