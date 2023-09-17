@@ -8,6 +8,35 @@ filters: &filters
     only: /.*/
 
 jobs:
+  test_get_github_releases_versions:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: medium
+    steps:
+      - multiarch/get_github_releases_versions:
+          owner: hashicorp
+          repo: terraform
+          filename: /tmp/releases.txt
+      - multiarch/get_github_releases_versions:
+          owner: ProtonMail
+          repo: proton-bridge
+          filename: /tmp/releases.txt
+      - run:
+          name: "Show releases"
+          command: |
+            cat /tmp/releases.txt
+      - run:
+          name: "Load releases"
+          command: |
+            cat /tmp/releases.txt >> "${BASH_ENV}"
+      - run:
+          name: "Use releases"
+          command: |
+            echo "Latest Terraform release is: '${hashicorp_terraform_minor}'"
+            echo "Pre-release Terraform is: '${hashicorp_terraform_minor_prerelease}'"
+            echo "Latest ProtonMail Bridge release is: '${ProtonMail_protonbridge_minor}'"
+            echo "Pre-release ProtonMail Bridge is: '${ProtonMail_protonbridge_minor_prerelease}'"
+
   cleanup_docker_hub:
     machine:
       image: ubuntu-2204:current
@@ -118,6 +147,8 @@ workflows:
           filters: *filters
           requires:
             - test_remove_tags
+      - test_get_github_releases_versions:
+          filters: *filters
       - orb-tools/publish:
           orb-name: nanders/multiarch
           vcs-type: << pipeline.project.type >>
@@ -126,6 +157,7 @@ workflows:
             - orb-tools/pack
             - cleanup_docker_hub
             - test_dynamic_build_args
+            - test_get_github_releases_versions
           context: orb-publishing
           filters:
             branches:

@@ -1,0 +1,22 @@
+description: >
+  Retrieves Github release and converts to semver ENV variables.
+parameters:
+  owner:
+    type: string
+    description: "Github owner."
+  repo:
+    type: string
+    description: "Github repo of the owner."
+  filename:
+    type: string
+    default: ''
+    description: "Filename to store ENV statements (Default: '')."
+steps:
+  - run:
+      name: "Get Github releases '<< parameters.owner >>/<< parameters.repo >>'"
+      command: << include(scripts/get_github_releases_versions.sh) >>
+      environment:
+        OWNER: << parameters.owner >>
+        REPO: << parameters.repo >>
+        COMMAND: circleci
+        FILENAME: << parameters.filename >>
