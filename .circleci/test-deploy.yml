@@ -35,6 +35,8 @@ workflows:
       - orb-tools/pack:
           filters: *filters
       - multiarch/build_x86_64:
+          context:
+            - docker-hub
           name: test_x86_64
           filters: *filters
           image: "test-multiarch-orb"
@@ -47,6 +49,8 @@ workflows:
                 command: |
                   docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_x86_64
       - multiarch/build_arm64:
+          context:
+            - docker-hub
           name: test_arm64
           filters: *filters
           image: "test-multiarch-orb"
@@ -59,6 +63,8 @@ workflows:
                 command: |
                   docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_arm64
       - multiarch/create_and_push_manifest:
+          context:
+            - docker-hub
           name: test_manifest_<< matrix.tag >>
           filters: *filters
           image: "test-multiarch-orb"
@@ -75,6 +81,8 @@ workflows:
             - test_x86_64
             - test_arm64
       - multiarch/remove_architecture_tags:
+          context:
+            - docker-hub
           name: test_remove_tags
           filters: *filters
           image: "test-multiarch-orb"
@@ -82,6 +90,8 @@ workflows:
           requires:
             - test_manifests
       - multiarch/build_x86_64:
+          context:
+            - docker-hub
           name: test_dynamic_build_args
           filters: *filters
           image: "test-multiarch-orb"
@@ -103,6 +113,8 @@ workflows:
                 image: "test-multiarch-orb"
                 tag: "test_dynamic_x86_64"
       - cleanup_docker_hub:
+          context:
+            - docker-hub
           filters: *filters
           requires:
             - test_remove_tags
