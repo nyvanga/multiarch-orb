@@ -1,5 +1,5 @@
 description: >
-  Retrieves Github release and converts to CircleCI continuation parameters JSON.
+  Retrieves Github release and converts to JSON.
 parameters:
   owner:
     type: string
@@ -10,12 +10,17 @@ parameters:
   jsonfile:
     type: string
     description: "JSON Filename to append parameters (uses 'jq --slurp add')."
+  filter:
+    type: string
+    description: "Regex filter of versions. Matches from beginning of name (default 'no filtering')."
+    default: ''
 steps:
   - run:
       name: "Get Github releases '<< parameters.owner >>/<< parameters.repo >>'"
-      command: << include(scripts/get_github_releases_parameters.sh) >>
+      command: << include(scripts/get_github_releases.sh) >>
       environment:
         OWNER: << parameters.owner >>
         REPO: << parameters.repo >>
-        COMMAND: circleci_parameters
+        COMMAND: json
         JSONFILE: << parameters.jsonfile >>
+        FILTER: << parameters.filter >>

@@ -76,6 +76,7 @@ function parse_github_releases() {
 
 function parse_versions() {
 	local previous_major_version=""
+	local index
 	for index in "${!VERSIONS[@]}"; do
 		local major_version
 		major_version=$(echo "${VERSIONS[index]}" | sed -r 's/^([0-9]+\.[0-9]+).*$/\1/')
@@ -132,6 +133,7 @@ function get_version() {
 
 function get_major_version() {
 	local major_version="${1}"; shift
+	local index
 	for index in "${!MAJOR_VERSIONS[@]}"; do
 		if [[ "${major_version}" == "${MAJOR_VERSIONS[index]}" ]]; then
 			get_version "${index}"
@@ -140,8 +142,23 @@ function get_major_version() {
 	done
 }
 
+function get_all_major_versions() {
+	local index	
+	for index in "${!UNIQ_MAJOR_VERSIONS[@]}"; do
+		get_major_version "${UNIQ_MAJOR_VERSIONS[index]}"
+	done
+}
+
+function get_all_versions() {
+	local index
+	for index in "${!VERSIONS[@]}"; do
+		get_version "${index}"
+	done
+}
+
 function get_major_version_from_version() {
 	local version="${1}"; shift
+	local index
 	for index in "${!VERSIONS[@]}"; do
 		if [[ "${VERSIONS[index]}" == "${version}" ]]; then
 			echo "${MAJOR_VERSIONS[index]}"
@@ -149,68 +166,80 @@ function get_major_version_from_version() {
 	done
 }
 
-function create_circleci_version_json() {
+function create_version_json() {
+	local name="${1}"; shift
 	local major_version="${1}"; shift
 	local minor_version="${1}"; shift
-	local suffix="${1:-}"
 	local name_prefix
-	name_prefix="$(echo "${OWNER,,}_${REPO,,}" | sed -r 's/[^a-z_]//')"
-	local json
-	json="$(jq --null-input \
-		--arg name1 "${name_prefix}_major${suffix}" --arg value1 "${major_version}" \
-		--arg name2 "${name_prefix}_minor${suffix}" --arg value2 "${minor_version}" \
-		'{ ($name1): $value1, ($name2): $value2 }')"
-	CIRCLECI_JSON+=("${json}")
+	name_prefix="$(echo "${OWNER,,}_${REPO,,}_${name}" | sed -r 's/[^a-z0-9_]//')"
+	if [[ "${name_prefix}" =~ ^${FILTER} ]]; then
+		local json
+		json="$(jq --null-input \
+			--arg name1 "${name_prefix}_major" --arg value1 "${major_version}" \
+			--arg name2 "${name_prefix}_minor" --arg value2 "${minor_version}" \
+			'{ ($name1): $value1, ($name2): $value2 }')"
+		JSON+=("${json}")
+	fi
 }
 
-function get_circleci_old_version() {
+function get_old_version_json() {
+	local name="${1}"; shift
 	local major_version="${1}"; shift
-	local suffix="${1}"; shift
+	local index
 	for index in "${!MAJOR_VERSIONS[@]}"; do
 		if [[ "${major_version}" == "${MAJOR_VERSIONS[index]}" ]]; then
-			create_circleci_version_json "${MAJOR_VERSIONS[index]}" "${VERSIONS[index]}" "${suffix}"
+			create_version_json "${name}" "${MAJOR_VERSIONS[index]}" "${VERSIONS[index]}"
 			return
 		fi
 	done
 }
 
-function get_circleci_version() {
+function get_versions_json() {
 	local major_version=''
 	if [[ ${#STABLE_VERSIONS[@]} -gt 0 ]]; then
 		major_version="$(get_major_version_from_version "${STABLE_VERSIONS[0]}")"
-		create_circleci_version_json "${major_version}" "${STABLE_VERSIONS[0]}"
+		create_version_json "stable" "${major_version}" "${STABLE_VERSIONS[0]}"
+	else
+		create_version_json "stable" "--" "--"
 	fi
 	local major_pre_release=''
 	if [[ ${#PRE_RELEASE_VERSIONS[@]} -gt 0 ]]; then
 		major_pre_release="$(get_major_version_from_version "${PRE_RELEASE_VERSIONS[0]}")"
-		create_circleci_version_json "${major_pre_release}" "${PRE_RELEASE_VERSIONS[0]}" "_prerelease"
+		create_version_json "prerelease" "${major_pre_release}" "${PRE_RELEASE_VERSIONS[0]}"
+	else
+		create_version_json "prerelease" "--" "--"
 	fi
 	local old_major_version
 	local old_index=1
+	local index
 	for index in "${!UNIQ_MAJOR_VERSIONS[@]}"; do
 		old_major_version="${UNIQ_MAJOR_VERSIONS[index]}"
 		if [[ "${old_major_version}" != "${major_version}" ]] && [[ "${old_major_version}" != "${major_pre_release}" ]]; then
-			get_circleci_old_version "${old_major_version}" "_old${old_index}"
+			get_old_version_json "old${old_index}" "${old_major_version}"
 			old_index=$((old_index + 1))
 		fi
 	done
-	if [[ -f "${JSONFILE}" ]]; then
-		CIRCLECI_JSON+=("$(cat "${JSONFILE}")")
+	if [[ ${#JSON[@]} -gt 0 ]]; then
+		if [[ "${JSONFILE:-}" == "" ]]; then
+			echo "${JSON[@]}" | jq --slurp add
+		else
+			if [[ -f "${JSONFILE}" ]]; then
+				JSON+=("$(cat "${JSONFILE}")")
+			fi
+			echo "${JSON[@]}" | jq --slurp add | tee "${JSONFILE}" | jq '.'
+		fi
+	else
+		echo "Empty JSON. Maybe FILTER isn't set correctly?"
 	fi
-	echo "${CIRCLECI_JSON[@]}" | jq --slurp add > "${JSONFILE}"
 }
 
 case "${COMMAND:-}" in
 	all)
-		for index in "${!VERSIONS[@]}"; do
-			get_version "${index}"
-		done
+		get_all_versions
 		;;
 
 	major)
-		for index in "${!UNIQ_MAJOR_VERSIONS[@]}"; do
-			get_major_version "${UNIQ_MAJOR_VERSIONS[index]}"
-		done
+		get_all_major_versions
 		;;
 
 	stable)
@@ -229,9 +258,9 @@ case "${COMMAND:-}" in
 		get_major_version "${COMMAND}"
 		;;
 
-	circleci_parameters)
-		CIRCLECI_JSON=()
-		get_circleci_version
+	json)
+		JSON=()
+		get_versions_json
 		;;
 
 	*)

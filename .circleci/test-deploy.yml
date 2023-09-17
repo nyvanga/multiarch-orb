@@ -12,25 +12,27 @@ jobs:
   test_get_github_releases_versions:
     executor: continuation/default
     steps:
-      - multiarch/get_github_releases_parameters:
+      - multiarch/get_github_releases:
           owner: hashicorp
           repo: terraform
-          jsonfile: /tmp/parameters.json
-      - multiarch/get_github_releases_parameters:
+          jsonfile: /tmp/releases.json
+          filter: hashicorp_terraform_(stable|prerelease)
+      - multiarch/get_github_releases:
           owner: ProtonMail
           repo: proton-bridge
-          jsonfile: /tmp/parameters.json
+          jsonfile: /tmp/releases.json
+          filter: protonmail_protonbridge_(stable|prerelease)
       - run:
-          name: "Show releases parameters"
+          name: "Show releases"
           command: |
-            cat /tmp/parameters.json | jq '.'
+            cat /tmp/releases.json | jq '.'
       - run:
-          name: "Use releases parameters"
+          name: "Use releases"
           command: |
-            echo "Latest Terraform release is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor')'"
-            echo "Pre-release Terraform is: '$(cat /tmp/parameters.json | jq -r '.hashicorp_terraform_minor_prerelease')'"
-            echo "Latest ProtonMail Bridge release is: '$(cat /tmp/parameters.json | jq -r '.protonmail_protonbridge_minor')'"
-            echo "Pre-release ProtonMail Bridge is: '$(cat /tmp/parameters.json | jq -r '.protonmail_protonbridge_minor_prerelease')'"
+            echo "Latest Terraform release is: '$(cat /tmp/releases.json | jq -r '.hashicorp_terraform_stable_minor')'"
+            echo "Pre-release Terraform is: '$(cat /tmp/releases.json | jq -r '.hashicorp_terraform_prerelease_minor')'"
+            echo "Latest ProtonMail Bridge release is: '$(cat /tmp/releases.json | jq -r '.protonmail_protonbridge_stable_minor')'"
+            echo "Pre-release ProtonMail Bridge is: '$(cat /tmp/releases.json | jq -r '.protonmail_protonbridge_prerelease_minor')'"
 
   cleanup_docker_hub:
     machine:
