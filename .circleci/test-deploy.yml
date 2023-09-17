@@ -21,6 +21,12 @@ jobs:
       - multiarch/remove_docker_hub_tag:
           image: test-multiarch-orb
           tag: latest
+      - multiarch/remove_docker_hub_tag:
+          image: test-multiarch-orb
+          tag: 1.2.3
+      - multiarch/remove_docker_hub_tag:
+          image: test-multiarch-orb
+          tag: 6.5.4
 
 workflows:
   test-deploy:
@@ -62,6 +68,8 @@ workflows:
               tag:
                 - date
                 - latest
+                - 1.2.3
+                - 6.5.4
             alias: test_manifests
           requires:
             - test_x86_64

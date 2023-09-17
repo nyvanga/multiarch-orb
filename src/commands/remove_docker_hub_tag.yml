@@ -9,13 +9,8 @@ parameters:
     description: "Tag to be removed."
 steps:
   - run:
-      name: "Resolve tag '<< parameters.tag >>'"
-      command: << include(scripts/resolve_tag.sh) >>
-      environment:
-        TAG: << parameters.tag >>
-  - run:
       name: "Remove tag '<< parameters.image >>:<< parameters.tag >>'"
       command: << include(scripts/remove_docker_hub_tag.sh) >>
       environment:
         IMAGE: << parameters.image >>
-        TAG_ENV: RESOLVED_<< parameters.tag >>
+        TAG: << parameters.tag >>

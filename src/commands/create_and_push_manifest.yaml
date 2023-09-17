@@ -14,14 +14,9 @@ parameters:
     description: "Tag of the manifest (default 'latest')."
 steps:
   - run:
-      name: "Resolve tag '<< parameters.tag >>'"
-      command: << include(scripts/resolve_tag.sh) >>
-      environment:
-        TAG: << parameters.tag >>
-  - run:
       name: "Create and push '<< parameters.image >>:<< parameters.tag >>'"
       command: << include(scripts/create_and_push_manifest.sh) >>
       environment:
         IMAGE: << parameters.image >>
         TAG_PREFIX: << parameters.tag_prefix >>
-        TAG_ENV: RESOLVED_<< parameters.tag >>
+        TAG: << parameters.tag >>
