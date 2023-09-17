@@ -51,6 +51,7 @@ workflows:
                 command: |
                   docker run --rm -it ${DOCKER_USERNAME}/test-multiarch-orb:test_arm64
       - multiarch/create_and_push_manifests:
+          name: test_manifests
           filters: *filters
           image: "test-multiarch-orb"
           tag_prefix: "test_"
@@ -58,6 +59,13 @@ workflows:
           requires:
             - test_x86_64
             - test_arm64
+      - multiarch/remove_architecture_tags:
+          name: test_remove_tags
+          filters: *filters
+          image: "test-multiarch-orb"
+          tag_prefix: "test_"
+          requires:
+            - test_manifests
       - multiarch/build_x86_64:
           name: test_dynamic_build_args
           filters: *filters
@@ -81,7 +89,7 @@ workflows:
       - cleanup_docker_hub:
           filters: *filters
           requires:
-            - multiarch/create_and_push_manifests
+            - test_remove_tags
       - orb-tools/publish:
           orb-name: nanders/multiarch
           vcs-type: << pipeline.project.type >>

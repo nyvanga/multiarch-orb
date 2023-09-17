@@ -1,6 +1,5 @@
 description: >
   Creates manifest that combines the two architecture builds.
-  Then removes the temporary architecture image tags.
 
 executor: default
 
@@ -23,9 +22,3 @@ steps:
       image: "<< parameters.image >>"
       tag_prefix: "<< parameters.tag_prefix >>"
       tags: "<< parameters.tags >>"
-  - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>x86_64"
-  - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>arm64"
