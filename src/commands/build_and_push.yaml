@@ -26,7 +26,7 @@ parameters:
     description: "Name of ENV variable containing extra arguments for docker build. (default '')"
 steps:
   - run:
-      name: "Build '<< parameters.build_context >>' and push '<< parameters.image >>:<< parameters.architecture >>'"
+      name: "Build '<< parameters.build_context >>' and push '<< parameters.image >>:<< parameters.tag_prefix >><< parameters.architecture >>'"
       command: <<include(scripts/build_and_push.sh)>>
       environment:
         IMAGE: "<< parameters.image >>"

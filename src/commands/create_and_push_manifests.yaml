@@ -14,15 +14,9 @@ parameters:
     description: "Whitespace delimited list of tags (default 'latest')."
 steps:
   - run:
-      name: "Create and push << parameters.image >> manifest (<< parameters.tags >>)"
+      name: "Create and push '<< parameters.image >>' manifest with tags '<< parameters.tags >>'"
       command: <<include(scripts/create_and_push_manifest.sh)>>
       environment:
         IMAGE: "<< parameters.image >>"
         TAG_PREFIX: "<< parameters.tag_prefix >>"
         TAGS: "<< parameters.tags >>"
-  - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>x86_64"
-  - remove_docker_hub_tag:
-      image: "<< parameters.image >>"
-      tag: "<< parameters.tag_prefix >>arm64"
